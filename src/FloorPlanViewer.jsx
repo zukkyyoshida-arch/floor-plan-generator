@@ -81,10 +81,20 @@ const FloorPlanViewer = ({
       const newX = pos.x - dragOffset.x;
       const newY = pos.y - dragOffset.y;
       setPreviewPos({ x: newX, y: newY });
+      
+      if (dragType === 'room' && onRoomUpdate) {
+        onRoomUpdate(draggingId, newX, newY, undefined, undefined, true);
+      } else if (dragType === 'fixture' && onFixtureUpdate) {
+        onFixtureUpdate(draggingId, newX, newY, true);
+      }
     } else if (resizingId && resizePreview) {
       const newW = Math.max(500, pos.x - resizePreview.x - dragOffset.x);
       const newH = Math.max(500, pos.y - resizePreview.y - dragOffset.y);
       setResizePreview({ ...resizePreview, w: newW, h: newH });
+      
+      if (onRoomUpdate) {
+        onRoomUpdate(resizingId, resizePreview.x, resizePreview.y, newW, newH, true);
+      }
     }
   };
 

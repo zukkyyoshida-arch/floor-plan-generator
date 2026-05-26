@@ -35,7 +35,7 @@ function App() {
     disposal: 130000,
     carpenter: 150000,
   });
-  const [isEstimateVisible, setIsEstimateVisible] = useState(false);
+  const [isEstimateVisible, setIsEstimateVisible] = useState(true);
   const [isProposalOpen, setIsProposalOpen] = useState(false);
   const [isEstimateModalOpen, setIsEstimateModalOpen] = useState(false);
   const [isSalesTipsModalOpen, setIsSalesTipsModalOpen] = useState(false);
@@ -183,7 +183,7 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedRoomId, selectedFixtureId, history, historyIndex, rooms, fixtures, clipboard]);
 
-  const handleRoomUpdate = (id, newX, newY, newW, newH) => {
+  const handleRoomUpdate = (id, newX, newY, newW, newH, isDragging = false) => {
     const newRooms = rooms.map(r => {
       if (r.id === id) {
         let updated = { ...r, x: newX, y: newY };
@@ -198,13 +198,13 @@ function App() {
       return r;
     });
     setRooms(newRooms);
-    saveHistory(newRooms, fixtures);
+    if (!isDragging) saveHistory(newRooms, fixtures);
   };
 
-  const handleFixtureUpdate = (id, newX, newY) => {
+  const handleFixtureUpdate = (id, newX, newY, isDragging = false) => {
     const newFixtures = fixtures.map(f => f.id === id ? { ...f, x: newX, y: newY } : f);
     setFixtures(newFixtures);
-    saveHistory(rooms, newFixtures);
+    if (!isDragging) saveHistory(rooms, newFixtures);
   };
 
   const handleAddRoom = (name, defaultW, defaultH) => {
