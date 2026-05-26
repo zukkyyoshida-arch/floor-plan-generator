@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import FloorPlanViewer from './FloorPlanViewer';
 import { sampleFloorPlan } from './data';
 import ProposalModal from './ProposalModal';
+import EstimateModal from './EstimateModal';
 
 function App() {
   const fileInputRef = useRef(null);
@@ -15,12 +16,26 @@ function App() {
   const [isSnapEnabled, setIsSnapEnabled] = useState(true);
   
   const [unitPrices, setUnitPrices] = useState({
-    floor: 3000,
-    wall: 1500,
-    ceiling: 1500,
+    floor: 3000, // ヘッダーのざっくり表示用
+    wall: 950,   // ヘッダー用
+    ceiling: 950,
+    // 詳細見積書用
+    cross: 950,
+    floorTile: 6000,
+    cf: 2800,
+    baseboard: 450,
+    ub: 550000,
+    kitchen: 450000,
+    toilet: 120000,
+    washstand: 250000,
+    door: 65000,
+    demo: 150000,
+    disposal: 130000,
+    carpenter: 150000,
   });
   const [isEstimateVisible, setIsEstimateVisible] = useState(false);
   const [isProposalOpen, setIsProposalOpen] = useState(false);
+  const [isEstimateModalOpen, setIsEstimateModalOpen] = useState(false);
   
   // 簡易Undo用ヒストリー
   const [history, setHistory] = useState([{ rooms: sampleFloorPlan.rooms, fixtures: [] }]);
@@ -372,24 +387,47 @@ function App() {
           </label>
         </div>
         <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>概算見積単価設定</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span style={{ fontSize: '0.75rem', flex: 1 }}>床材 (円/㎡):</span>
-              <input type="number" value={unitPrices.floor} onChange={e => setUnitPrices({...unitPrices, floor: parseInt(e.target.value) || 0})} style={{ width: '80px', padding: '0.2rem' }} />
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>概算見積・明細単価設定</label>
+          
+          <details style={{ marginTop: '0.25rem', fontSize: '0.75rem' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 'bold', padding: '0.2rem' }}>内装単価を展開</summary>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ flex: 1 }}>クロス (円/m):</span>
+                <input type="number" value={unitPrices.cross} onChange={e => setUnitPrices({...unitPrices, cross: parseInt(e.target.value) || 0, wall: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ flex: 1 }}>フロアタイル (円/㎡):</span>
+                <input type="number" value={unitPrices.floorTile} onChange={e => setUnitPrices({...unitPrices, floorTile: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ flex: 1 }}>クッションフロア (円/㎡):</span>
+                <input type="number" value={unitPrices.cf} onChange={e => setUnitPrices({...unitPrices, cf: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span style={{ fontSize: '0.75rem', flex: 1 }}>壁クロス (円/㎡):</span>
-              <input type="number" value={unitPrices.wall} onChange={e => setUnitPrices({...unitPrices, wall: parseInt(e.target.value) || 0})} style={{ width: '80px', padding: '0.2rem' }} />
+          </details>
+
+          <details style={{ marginTop: '0.25rem', fontSize: '0.75rem' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 'bold', padding: '0.2rem' }}>設備単価を展開</summary>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ flex: 1 }}>キッチン (円/式):</span>
+                <input type="number" value={unitPrices.kitchen} onChange={e => setUnitPrices({...unitPrices, kitchen: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ flex: 1 }}>ユニットバス (円/式):</span>
+                <input type="number" value={unitPrices.ub} onChange={e => setUnitPrices({...unitPrices, ub: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ flex: 1 }}>トイレ・便座 (円/式):</span>
+                <input type="number" value={unitPrices.toilet} onChange={e => setUnitPrices({...unitPrices, toilet: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{ flex: 1 }}>洗面化粧台 (円/式):</span>
+                <input type="number" value={unitPrices.washstand} onChange={e => setUnitPrices({...unitPrices, washstand: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span style={{ fontSize: '0.75rem', flex: 1 }}>天井クロス (円/㎡):</span>
-              <input type="number" value={unitPrices.ceiling} onChange={e => setUnitPrices({...unitPrices, ceiling: parseInt(e.target.value) || 0})} style={{ width: '80px', padding: '0.2rem' }} />
-            </div>
-            <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '0.25rem' }}>
-              ※壁面積は床面積の2.5倍として自動算出されます。
-            </div>
-          </div>
+          </details>
         </div>
       </div>
       
@@ -643,6 +681,12 @@ function App() {
           {!isMobile && (
             <>
               <button 
+                onClick={() => setIsEstimateModalOpen(true)}
+                style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
+              >
+                💴 見積書
+              </button>
+              <button 
                 onClick={() => setIsProposalOpen(true)}
                 style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', backgroundColor: '#e91e63', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
               >
@@ -738,6 +782,16 @@ function App() {
           theme={theme}
           watermark={watermark}
           onClose={() => setIsProposalOpen(false)}
+        />
+      )}
+
+      {isEstimateModalOpen && (
+        <EstimateModal 
+          rooms={rooms}
+          fixtures={fixtures}
+          unitPrices={unitPrices}
+          watermark={watermark}
+          onClose={() => setIsEstimateModalOpen(false)}
         />
       )}
     </div>
