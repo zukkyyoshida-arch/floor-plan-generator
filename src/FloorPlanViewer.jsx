@@ -92,7 +92,7 @@ const FloorPlanViewer = ({
     evt.preventDefault();
     
     if (draggingId && previewPos) {
-      const snapSize = 10;
+      const snapSize = 250;
       let snappedX = Math.round(previewPos.x / snapSize) * snapSize;
       let snappedY = Math.round(previewPos.y / snapSize) * snapSize;
       
@@ -141,7 +141,7 @@ const FloorPlanViewer = ({
         onFixtureUpdate(draggingId, snappedX, snappedY);
       }
     } else if (resizingId && resizePreview) {
-      const snapSize = 10;
+      const snapSize = 250;
       let snappedW = Math.round(resizePreview.w / snapSize) * snapSize;
       let snappedH = Math.round(resizePreview.h / snapSize) * snapSize;
 
