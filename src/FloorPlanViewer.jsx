@@ -93,8 +93,47 @@ const FloorPlanViewer = ({
     
     if (draggingId && previewPos) {
       const snapSize = 10;
-      const snappedX = Math.round(previewPos.x / snapSize) * snapSize;
-      const snappedY = Math.round(previewPos.y / snapSize) * snapSize;
+      let snappedX = Math.round(previewPos.x / snapSize) * snapSize;
+      let snappedY = Math.round(previewPos.y / snapSize) * snapSize;
+      
+      const draggedItem = dragType === 'room' 
+        ? rooms.find(r => r.id === draggingId) 
+        : fixtures.find(f => f.id === draggingId);
+
+      if (draggedItem) {
+        const MAGNET_DIST = 150; // 15cm以内に近づいたら吸着
+        let bestX = snappedX;
+        let bestY = snappedY;
+        let minDx = MAGNET_DIST;
+        let minDy = MAGNET_DIST;
+
+        const checkSnap = (val, target, currentMin, setBest) => {
+          const dist = Math.abs(val - target);
+          if (dist < currentMin) {
+            setBest(target);
+            return dist;
+          }
+          return currentMin;
+        };
+
+        rooms.forEach(r => {
+          if (r.id === draggingId) return;
+          // X方向の吸着
+          minDx = checkSnap(snappedX, r.x, minDx, v => bestX = v);
+          minDx = checkSnap(snappedX, r.x + r.w, minDx, v => bestX = v);
+          minDx = checkSnap(snappedX + draggedItem.w, r.x, minDx, v => bestX = v - draggedItem.w);
+          minDx = checkSnap(snappedX + draggedItem.w, r.x + r.w, minDx, v => bestX = v - draggedItem.w);
+
+          // Y方向の吸着
+          minDy = checkSnap(snappedY, r.y, minDy, v => bestY = v);
+          minDy = checkSnap(snappedY, r.y + r.h, minDy, v => bestY = v);
+          minDy = checkSnap(snappedY + draggedItem.h, r.y, minDy, v => bestY = v - draggedItem.h);
+          minDy = checkSnap(snappedY + draggedItem.h, r.y + r.h, minDy, v => bestY = v - draggedItem.h);
+        });
+
+        snappedX = bestX;
+        snappedY = bestY;
+      }
       
       if (dragType === 'room' && onRoomUpdate) {
         onRoomUpdate(draggingId, snappedX, snappedY);
@@ -103,8 +142,39 @@ const FloorPlanViewer = ({
       }
     } else if (resizingId && resizePreview) {
       const snapSize = 10;
-      const snappedW = Math.round(resizePreview.w / snapSize) * snapSize;
-      const snappedH = Math.round(resizePreview.h / snapSize) * snapSize;
+      let snappedW = Math.round(resizePreview.w / snapSize) * snapSize;
+      let snappedH = Math.round(resizePreview.h / snapSize) * snapSize;
+
+      const MAGNET_DIST = 150;
+      let bestW = snappedW;
+      let bestH = snappedH;
+      let minDw = MAGNET_DIST;
+      let minDh = MAGNET_DIST;
+
+      const draggedRoom = rooms.find(r => r.id === resizingId);
+      if (draggedRoom) {
+        rooms.forEach(r => {
+          if (r.id === resizingId) return;
+          const currentRightX = resizePreview.x + snappedW;
+          const currentBottomY = resizePreview.y + snappedH;
+
+          // 幅の吸着
+          const distWx1 = Math.abs(currentRightX - r.x);
+          if (distWx1 < minDw) { minDw = distWx1; bestW = r.x - resizePreview.x; }
+          const distWx2 = Math.abs(currentRightX - (r.x + r.w));
+          if (distWx2 < minDw) { minDw = distWx2; bestW = (r.x + r.w) - resizePreview.x; }
+
+          // 高さの吸着
+          const distHy1 = Math.abs(currentBottomY - r.y);
+          if (distHy1 < minDh) { minDh = distHy1; bestH = r.y - resizePreview.y; }
+          const distHy2 = Math.abs(currentBottomY - (r.y + r.h));
+          if (distHy2 < minDh) { minDh = distHy2; bestH = (r.y + r.h) - resizePreview.y; }
+        });
+      }
+
+      snappedW = Math.max(500, bestW);
+      snappedH = Math.max(500, bestH);
+
       if (onRoomUpdate) {
         onRoomUpdate(resizingId, resizePreview.x, resizePreview.y, snappedW, snappedH);
       }
