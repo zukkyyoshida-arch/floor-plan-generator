@@ -471,30 +471,45 @@ function App() {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <header style={{ padding: '1rem', backgroundColor: '#333', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <h1 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>Floor Plan</h1>
-          <span style={{ backgroundColor: '#555', padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem' }}>
-            {totalSqm.toFixed(1)}㎡ / {(totalSqm / 1.62).toFixed(1)}帖
-          </span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
+      <header style={{ padding: '0.75rem 1rem', backgroundColor: '#333', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', zIndex: 110 }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {isMobile && (
+            <button 
+              onClick={() => setIsTrayOpen(!isTrayOpen)}
+              style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.5rem', cursor: 'pointer', padding: '0 0.5rem 0 0' }}
+            >
+              ☰
+            </button>
+          )}
+          <h1 style={{ margin: 0, fontSize: isMobile ? '1.1rem' : '1.5rem' }}>Floor Plan</h1>
+          {!isMobile && (
+            <span style={{ backgroundColor: '#555', padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem' }}>
+              {totalSqm.toFixed(1)}㎡ / {(totalSqm / 1.62).toFixed(1)}帖
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-          <button onClick={undo} disabled={historyIndex === 0} style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', border: 'none' }}>↩️</button>
-          <button onClick={redo} disabled={historyIndex === history.length - 1} style={{ cursor: 'pointer', padding: '0.5rem', borderRadius: '4px', border: 'none' }}>↪️</button>
+          {isMobile && (
+            <span style={{ backgroundColor: '#555', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', marginRight: '0.25rem' }}>
+              {totalSqm.toFixed(1)}㎡
+            </span>
+          )}
+          <button onClick={undo} disabled={historyIndex === 0} style={{ cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', border: 'none' }}>↩️</button>
+          <button onClick={redo} disabled={historyIndex === history.length - 1} style={{ cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', border: 'none' }}>↪️</button>
           
           <input type="file" accept=".json" style={{ display: 'none' }} ref={fileInputRef} onChange={handleLoadJson} />
           {!isMobile && (
             <>
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                style={{ padding: '0.5rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem' }}
+                style={{ padding: '0.4rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem' }}
               >
                 📂
               </button>
               <button 
                 onClick={handleSaveJson}
-                style={{ padding: '0.5rem', cursor: 'pointer', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px' }}
+                style={{ padding: '0.4rem', cursor: 'pointer', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px' }}
               >
                 💾
               </button>
@@ -502,7 +517,7 @@ function App() {
           )}
           <button 
             onClick={handleExport}
-            style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
+            style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
           >
             SVG出力
           </button>
@@ -510,55 +525,26 @@ function App() {
       </header>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {/* Desktop Sidebar */}
-        {!isMobile && (
-          <aside style={{ width: '320px', backgroundColor: '#f8f9fa', borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+        {/* Desktop Sidebar OR Mobile Slide-in Menu */}
+        <aside style={{ 
+          width: isMobile ? '80%' : '320px', 
+          maxWidth: '320px',
+          backgroundColor: '#f8f9fa', 
+          borderRight: '1px solid #ddd', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          zIndex: 100,
+          position: isMobile ? 'absolute' : 'relative',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          transform: isMobile ? (isTrayOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: isMobile && isTrayOpen ? '4px 0 10px rgba(0,0,0,0.1)' : 'none'
+        }}>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
             <SidebarContent />
-          </aside>
-        )}
-
-        {/* Mobile Bottom Tray */}
-        {isMobile && (
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: '#f8f9fa',
-            borderTop: '1px solid #ddd',
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 100,
-            boxShadow: '0 -4px 10px rgba(0,0,0,0.1)',
-            transform: isTrayOpen ? 'translateY(0)' : 'translateY(calc(100% - 60px))',
-            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            height: '75vh',
-            maxHeight: '600px'
-          }}>
-            <button 
-              onClick={() => setIsTrayOpen(!isTrayOpen)}
-              style={{ 
-                height: '60px', 
-                backgroundColor: 'white', 
-                border: 'none', 
-                borderBottom: '1px solid #ddd', 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                cursor: 'pointer',
-                flexShrink: 0,
-                borderRadius: '16px 16px 0 0',
-                padding: '0 1rem'
-              }}
-            >
-              <div style={{ width: '40px', height: '6px', backgroundColor: '#ccc', borderRadius: '3px' }}></div>
-              <span style={{ position: 'absolute', right: '1rem', fontWeight: 'bold', color: '#007bff' }}>
-                {isTrayOpen ? '閉じる' : 'メニューを開く'}
-              </span>
-            </button>
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-              <SidebarContent />
-              
+            {isMobile && (
               <div style={{ padding: '1rem', display: 'flex', gap: '0.5rem', borderTop: '1px solid #ddd', backgroundColor: '#fff' }}>
                 <button 
                   onClick={() => fileInputRef.current?.click()}
@@ -573,11 +559,19 @@ function App() {
                   💾 セーブ
                 </button>
               </div>
-            </div>
+            )}
           </div>
+        </aside>
+
+        {/* Overlay for mobile when menu is open */}
+        {isMobile && isTrayOpen && (
+          <div 
+            onClick={() => setIsTrayOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+          />
         )}
 
-        <main style={{ flex: 1, backgroundColor: '#e0e0e0', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', paddingBottom: isMobile && !isTrayOpen ? '60px' : 0, touchAction: 'none' }}>
+        <main style={{ flex: 1, backgroundColor: '#e0e0e0', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', touchAction: 'none' }}>
           <FloorPlanViewer 
             data={currentData} 
             onRoomUpdate={handleRoomUpdate} 
