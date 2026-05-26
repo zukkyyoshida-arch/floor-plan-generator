@@ -13,6 +13,13 @@ function App() {
   const [watermark, setWatermark] = useState('〇〇内装株式会社');
   const [isSnapEnabled, setIsSnapEnabled] = useState(true);
   
+  const [unitPrices, setUnitPrices] = useState({
+    floor: 3000,
+    wall: 1500,
+    ceiling: 1500,
+  });
+  const [isEstimateVisible, setIsEstimateVisible] = useState(false);
+  
   // 簡易Undo用ヒストリー
   const [history, setHistory] = useState([{ rooms: sampleFloorPlan.rooms, fixtures: [] }]);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -270,7 +277,7 @@ function App() {
   };
 
   const handleSaveJson = () => {
-    const data = { rooms, fixtures, theme, watermark };
+    const data = { rooms, fixtures, theme, watermark, unitPrices, isEstimateVisible };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -293,6 +300,8 @@ function App() {
         if (data.fixtures) setFixtures(data.fixtures);
         if (data.theme) setTheme(data.theme);
         if (data.watermark !== undefined) setWatermark(data.watermark);
+        if (data.unitPrices) setUnitPrices(data.unitPrices);
+        if (data.isEstimateVisible !== undefined) setIsEstimateVisible(data.isEstimateVisible);
         saveHistory(data.rooms || [], data.fixtures || []);
       } catch (err) {
         alert('ファイルの読み込みに失敗しました。');
@@ -303,6 +312,12 @@ function App() {
   };
 
   const totalSqm = rooms.reduce((sum, r) => sum + ((r.w / 1000) * (r.h / 1000)), 0);
+  const wallAreaMultiplier = 2.5;
+  const totalEstimate = Math.round(
+    totalSqm * unitPrices.floor + 
+    totalSqm * unitPrices.ceiling + 
+    (totalSqm * wallAreaMultiplier) * unitPrices.wall
+  );
 
   const currentData = {
     rooms,
@@ -353,6 +368,26 @@ function App() {
             />
             スナップ（吸着・自動配置）を有効にする
           </label>
+        </div>
+        <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>概算見積単価設定</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ fontSize: '0.75rem', flex: 1 }}>床材 (円/㎡):</span>
+              <input type="number" value={unitPrices.floor} onChange={e => setUnitPrices({...unitPrices, floor: parseInt(e.target.value) || 0})} style={{ width: '80px', padding: '0.2rem' }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ fontSize: '0.75rem', flex: 1 }}>壁クロス (円/㎡):</span>
+              <input type="number" value={unitPrices.wall} onChange={e => setUnitPrices({...unitPrices, wall: parseInt(e.target.value) || 0})} style={{ width: '80px', padding: '0.2rem' }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ fontSize: '0.75rem', flex: 1 }}>天井クロス (円/㎡):</span>
+              <input type="number" value={unitPrices.ceiling} onChange={e => setUnitPrices({...unitPrices, ceiling: parseInt(e.target.value) || 0})} style={{ width: '80px', padding: '0.2rem' }} />
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '0.25rem' }}>
+              ※壁面積は床面積の2.5倍として自動算出されます。
+            </div>
+          </div>
         </div>
       </div>
       
@@ -572,16 +607,32 @@ function App() {
           )}
           <h1 style={{ margin: 0, fontSize: isMobile ? '1.1rem' : '1.5rem' }}>Floor Plan</h1>
           {!isMobile && (
-            <span style={{ backgroundColor: '#555', padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem' }}>
-              {totalSqm.toFixed(1)}㎡ / {(totalSqm / 1.62).toFixed(1)}帖
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ backgroundColor: '#555', padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem' }}>
+                {totalSqm.toFixed(1)}㎡ / {(totalSqm / 1.62).toFixed(1)}帖
+              </span>
+              <span style={{ backgroundColor: '#555', padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem', marginLeft: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span onClick={() => setIsEstimateVisible(!isEstimateVisible)} style={{ cursor: 'pointer' }}>
+                  {isEstimateVisible ? '👁️' : '🙈'}
+                </span>
+                {isEstimateVisible ? `概算: ¥${totalEstimate.toLocaleString()}` : '概算: ¥---,---'}
+              </span>
+            </div>
           )}
         </div>
         <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
           {isMobile && (
-            <span style={{ backgroundColor: '#555', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', marginRight: '0.25rem' }}>
-              {totalSqm.toFixed(1)}㎡
-            </span>
+            <>
+              <span style={{ backgroundColor: '#555', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                {totalSqm.toFixed(1)}㎡
+              </span>
+              <span style={{ backgroundColor: '#555', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.7rem', marginRight: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                <span onClick={() => setIsEstimateVisible(!isEstimateVisible)} style={{ cursor: 'pointer' }}>
+                  {isEstimateVisible ? '👁️' : '🙈'}
+                </span>
+                {isEstimateVisible ? `¥${totalEstimate.toLocaleString()}` : '¥---'}
+              </span>
+            </>
           )}
           <button onClick={undo} disabled={historyIndex === 0} style={{ cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', border: 'none' }}>↩️</button>
           <button onClick={redo} disabled={historyIndex === history.length - 1} style={{ cursor: 'pointer', padding: '0.4rem', borderRadius: '4px', border: 'none' }}>↪️</button>
