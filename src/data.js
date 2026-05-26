@@ -1,6 +1,7 @@
 export const sampleFloorPlan = {
   width: 6500,
   height: 9500,
+  rooms: [
     { id: "room1", name: "洋室", area: "6.25㎡", x: 0, y: 0, w: 2500, h: 2500 },
     { id: "closet1", name: "押入", area: "1.50㎡", x: 0, y: 2500, w: 1500, h: 1000 },
     { id: "closet2", name: "押入れ", area: "1.00㎡", x: 1500, y: 2500, w: 1000, h: 1000 },
