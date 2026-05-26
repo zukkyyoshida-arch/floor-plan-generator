@@ -53,17 +53,76 @@ function App() {
     }
   };
 
+  // コピー用ステート
+  const [clipboard, setClipboard] = useState(null);
+
+  const handleDuplicate = () => {
+    if (selectedRoomId) {
+      const target = rooms.find(r => r.id === selectedRoomId);
+      if (target) {
+        const newRoom = { ...target, id: `room_${Date.now()}`, x: target.x + 500, y: target.y + 500 };
+        const newRooms = [...rooms, newRoom];
+        setRooms(newRooms);
+        setSelectedRoomId(newRoom.id);
+        saveHistory(newRooms, fixtures);
+      }
+    } else if (selectedFixtureId) {
+      const target = fixtures.find(f => f.id === selectedFixtureId);
+      if (target) {
+        const newFixture = { ...target, id: `fixture_${Date.now()}`, x: target.x + 500, y: target.y + 500 };
+        const newFixtures = [...fixtures, newFixture];
+        setFixtures(newFixtures);
+        setSelectedFixtureId(newFixture.id);
+        saveHistory(rooms, newFixtures);
+      }
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return;
       }
       
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+
+      if (isCmdOrCtrl && e.key === 'z') {
         if (e.shiftKey) {
           redo();
         } else {
           undo();
+        }
+        return;
+      }
+
+      if (isCmdOrCtrl && (e.key === 'c' || e.key === 'C')) {
+        if (selectedRoomId) {
+          setClipboard({ type: 'room', data: rooms.find(r => r.id === selectedRoomId) });
+        } else if (selectedFixtureId) {
+          setClipboard({ type: 'fixture', data: fixtures.find(f => f.id === selectedFixtureId) });
+        }
+        return;
+      }
+
+      if (isCmdOrCtrl && (e.key === 'v' || e.key === 'V')) {
+        if (clipboard) {
+          if (clipboard.type === 'room' && clipboard.data) {
+            const newRoom = { ...clipboard.data, id: `room_${Date.now()}`, x: clipboard.data.x + 500, y: clipboard.data.y + 500 };
+            const newRooms = [...rooms, newRoom];
+            setRooms(newRooms);
+            setSelectedRoomId(newRoom.id);
+            setSelectedFixtureId(null);
+            saveHistory(newRooms, fixtures);
+            setClipboard({ type: 'room', data: newRoom }); // Update clipboard so repeated pastes offset further
+          } else if (clipboard.type === 'fixture' && clipboard.data) {
+            const newFixture = { ...clipboard.data, id: `fixture_${Date.now()}`, x: clipboard.data.x + 500, y: clipboard.data.y + 500 };
+            const newFixtures = [...fixtures, newFixture];
+            setFixtures(newFixtures);
+            setSelectedFixtureId(newFixture.id);
+            setSelectedRoomId(null);
+            saveHistory(rooms, newFixtures);
+            setClipboard({ type: 'fixture', data: newFixture });
+          }
         }
         return;
       }
@@ -94,7 +153,7 @@ function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedRoomId, selectedFixtureId, history, historyIndex, rooms, fixtures]);
+  }, [selectedRoomId, selectedFixtureId, history, historyIndex, rooms, fixtures, clipboard]);
 
   const handleRoomUpdate = (id, newX, newY, newW, newH) => {
     const newRooms = rooms.map(r => {
@@ -449,23 +508,40 @@ function App() {
           <p style={{ fontSize: '0.85rem', color: '#888', textAlign: 'center', margin: 0 }}>パーツを選択すると編集できます</p>
         )}
 
-        <button
-          onClick={handleDelete}
-          disabled={!selectedRoomId && !selectedFixtureId}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: (selectedRoomId || selectedFixtureId) ? '#ff4c4c' : '#e0e0e0',
-            color: (selectedRoomId || selectedFixtureId) ? 'white' : '#888',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: (selectedRoomId || selectedFixtureId) ? 'pointer' : 'not-allowed',
-            fontWeight: 'bold',
-            marginTop: '0.5rem'
-          }}
-        >
-          🗑️ 削除
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <button
+            onClick={handleDuplicate}
+            disabled={!selectedRoomId && !selectedFixtureId}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              backgroundColor: (selectedRoomId || selectedFixtureId) ? '#17a2b8' : '#e0e0e0',
+              color: (selectedRoomId || selectedFixtureId) ? 'white' : '#888',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: (selectedRoomId || selectedFixtureId) ? 'pointer' : 'not-allowed',
+              fontWeight: 'bold'
+            }}
+          >
+            📋 複製
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={!selectedRoomId && !selectedFixtureId}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              backgroundColor: (selectedRoomId || selectedFixtureId) ? '#ff4c4c' : '#e0e0e0',
+              color: (selectedRoomId || selectedFixtureId) ? 'white' : '#888',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: (selectedRoomId || selectedFixtureId) ? 'pointer' : 'not-allowed',
+              fontWeight: 'bold'
+            }}
+          >
+            🗑️ 削除
+          </button>
+        </div>
       </div>
     </>
   );
