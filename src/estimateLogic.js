@@ -1,4 +1,4 @@
-export const generateEstimateItems = (rooms, fixtures, unitPrices) => {
+export const generateEstimateItems = (rooms = [], fixtures = [], unitPrices = {}) => {
   const items = [];
   
   // 1. 仮設・解体・大工工事
@@ -12,15 +12,15 @@ export const generateEstimateItems = (rooms, fixtures, unitPrices) => {
 
   // 2. 設備工事 (fixtures & room types)
   let kitchenCount = 0, toiletCount = 0, doorCount = 0, windowCount = 0;
-  fixtures.forEach(f => {
-    if (f.type === 'kitchen') kitchenCount++;
-    if (f.type === 'toilet') toiletCount++;
-    if (f.type === 'door_single') doorCount++;
-    if (f.type === 'window') windowCount++;
+  (fixtures || []).forEach(f => {
+    if (f && f.type === 'kitchen') kitchenCount++;
+    if (f && f.type === 'toilet') toiletCount++;
+    if (f && f.type === 'door_single') doorCount++;
+    if (f && f.type === 'window') windowCount++;
   });
   
-  const hasUB = rooms.some(r => r.name.includes('UB') || r.name.includes('風呂'));
-  const hasWashroom = rooms.some(r => r.name.includes('洗面'));
+  const hasUB = (rooms || []).some(r => (r && r.name) ? (r.name.includes('UB') || r.name.includes('風呂')) : false);
+  const hasWashroom = (rooms || []).some(r => (r && r.name) ? r.name.includes('洗面') : false);
 
   if (hasUB) {
     items.push({ name: 'ユニットバス 搬入・組立・材工共', qty: 1, unit: '式', price: unitPrices.ub || 550000 });
@@ -39,24 +39,26 @@ export const generateEstimateItems = (rooms, fixtures, unitPrices) => {
   }
 
   // 3. 内装工事 (rooms)
-  rooms.forEach(r => {
-    const sqm = (r.w / 1000) * (r.h / 1000);
+  (rooms || []).forEach(r => {
+    if (!r) return;
+    const roomName = r.name || '不明';
+    const sqm = ((r.w || 0) / 1000) * ((r.h || 0) / 1000);
     // 天井クロス
-    items.push({ name: `クロス工事 ${r.name} 天井`, qty: Number(sqm.toFixed(1)), unit: 'm', price: unitPrices.cross || 950 });
+    items.push({ name: `クロス工事 ${roomName} 天井`, qty: Number(sqm.toFixed(1)), unit: 'm', price: unitPrices.cross || 950 });
     // 壁クロス (平米 x 2.5)
     const wallM = sqm * 2.5;
-    items.push({ name: `クロス工事 ${r.name} 壁`, qty: Number(wallM.toFixed(1)), unit: 'm', price: unitPrices.cross || 950 });
+    items.push({ name: `クロス工事 ${roomName} 壁`, qty: Number(wallM.toFixed(1)), unit: 'm', price: unitPrices.cross || 950 });
     
     // 床工事
-    const isWater = /トイレ|風呂|UB|洗面|脱衣|キッチン/.test(r.name);
-    if (!r.name.includes('UB') && !r.name.includes('風呂')) { 
+    const isWater = /トイレ|風呂|UB|洗面|脱衣|キッチン/.test(roomName);
+    if (!roomName.includes('UB') && !roomName.includes('風呂')) { 
       if (isWater) {
-        items.push({ name: `クッションフロア工事 ${r.name}`, qty: Number(sqm.toFixed(1)), unit: '㎡', price: unitPrices.cf || 2800 });
+        items.push({ name: `クッションフロア工事 ${roomName}`, qty: Number(sqm.toFixed(1)), unit: '㎡', price: unitPrices.cf || 2800 });
       } else {
-        items.push({ name: `フロアタイル工事 ${r.name}`, qty: Number(sqm.toFixed(1)), unit: '㎡', price: unitPrices.floorTile || 6000 });
+        items.push({ name: `フロアタイル工事 ${roomName}`, qty: Number(sqm.toFixed(1)), unit: '㎡', price: unitPrices.floorTile || 6000 });
         // 巾木
-        const perimeter = ((r.w / 1000) + (r.h / 1000)) * 2;
-        items.push({ name: `ソフト巾木貼替 ${r.name}`, qty: Number(perimeter.toFixed(1)), unit: 'm', price: unitPrices.baseboard || 450 });
+        const perimeter = (((r.w || 0) / 1000) + ((r.h || 0) / 1000)) * 2;
+        items.push({ name: `ソフト巾木貼替 ${roomName}`, qty: Number(perimeter.toFixed(1)), unit: 'm', price: unitPrices.baseboard || 450 });
       }
     }
   });
