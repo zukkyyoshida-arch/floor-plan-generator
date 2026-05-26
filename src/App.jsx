@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FloorPlanViewer from './FloorPlanViewer';
 import { sampleFloorPlan } from './data';
+import ProposalModal from './ProposalModal';
 
 function App() {
   const fileInputRef = useRef(null);
@@ -19,6 +20,7 @@ function App() {
     ceiling: 1500,
   });
   const [isEstimateVisible, setIsEstimateVisible] = useState(false);
+  const [isProposalOpen, setIsProposalOpen] = useState(false);
   
   // 簡易Undo用ヒストリー
   const [history, setHistory] = useState([{ rooms: sampleFloorPlan.rooms, fixtures: [] }]);
@@ -641,6 +643,12 @@ function App() {
           {!isMobile && (
             <>
               <button 
+                onClick={() => setIsProposalOpen(true)}
+                style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', backgroundColor: '#e91e63', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
+              >
+                📄 提案書
+              </button>
+              <button 
                 onClick={() => fileInputRef.current?.click()}
                 style={{ padding: '0.4rem', cursor: 'pointer', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem' }}
               >
@@ -723,6 +731,15 @@ function App() {
           />
         </main>
       </div>
+
+      {isProposalOpen && (
+        <ProposalModal 
+          rooms={rooms}
+          theme={theme}
+          watermark={watermark}
+          onClose={() => setIsProposalOpen(false)}
+        />
+      )}
     </div>
   );
 }
