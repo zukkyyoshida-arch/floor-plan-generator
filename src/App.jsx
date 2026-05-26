@@ -3,6 +3,7 @@ import FloorPlanViewer from './FloorPlanViewer';
 import { sampleFloorPlan } from './data';
 import ProposalModal from './ProposalModal';
 import EstimateModal from './EstimateModal';
+import { generateEstimateItems } from './estimateLogic';
 
 function App() {
   const fileInputRef = useRef(null);
@@ -329,12 +330,10 @@ function App() {
   };
 
   const totalSqm = rooms.reduce((sum, r) => sum + ((r.w / 1000) * (r.h / 1000)), 0);
-  const wallAreaMultiplier = 2.5;
-  const totalEstimate = Math.round(
-    totalSqm * unitPrices.floor + 
-    totalSqm * unitPrices.ceiling + 
-    (totalSqm * wallAreaMultiplier) * unitPrices.wall
-  );
+  
+  const estimateItems = useMemo(() => generateEstimateItems(rooms, fixtures, unitPrices), [rooms, fixtures, unitPrices]);
+  const subTotal = estimateItems.reduce((sum, item) => sum + (item.qty * item.price), 0);
+  const totalEstimate = subTotal + Math.round(subTotal * 0.1); // 税込
 
   const currentData = {
     rooms,
