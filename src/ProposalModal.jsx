@@ -33,33 +33,43 @@ const ProposalModal = ({ rooms, theme, watermark, onClose }) => {
     }}>
       <style>{`
         @media print {
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+          body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
           body * {
-            visibility: hidden;
+            display: none !important;
           }
-          .proposal-print-area, .proposal-print-area * {
-            visibility: visible;
-          }
-          .proposal-print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 210mm;
-            /* height: 297mm; A4 */
-            margin: 0;
-            padding: 10mm;
-            box-sizing: border-box;
-            background: white !important;
-            box-shadow: none !important;
+          .proposal-modal-overlay,
+          .proposal-modal-overlay * {
+            display: revert !important;
           }
           .proposal-modal-overlay {
-            position: absolute;
-            padding: 0;
-            background: none;
-            overflow: visible;
+            position: static !important;
+            padding: 0 !important;
+            background: none !important;
+            overflow: visible !important;
+            height: auto !important;
+          }
+          .proposal-print-area {
+            position: static !important;
+            width: 100% !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
           }
           .no-print {
             display: none !important;
           }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; page-break-after: auto; }
+          thead { display: table-header-group; }
+          tfoot { display: table-footer-group; }
           
           /* Style SVG to fit nicely in print */
           .proposal-print-area svg {
@@ -91,15 +101,15 @@ const ProposalModal = ({ rooms, theme, watermark, onClose }) => {
           <div style={{ fontSize: '16px', color: '#555', fontWeight: 'bold' }}>{watermark}</div>
         </div>
 
-        <div style={{ display: 'flex', gap: '25px', flex: 1 }}>
+        <div style={{ display: 'block', width: '100%', overflow: 'hidden' }}>
           {/* Left: Floor Plan */}
-          <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div style={{ float: 'left', width: '45%', marginRight: '5%', marginBottom: '20px' }}>
             <div 
-              style={{ width: '100%', flex: 1, maxHeight: '200mm', border: '1px solid #eee', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}
+              style={{ width: '100%', border: '1px solid #eee', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
             {/* Color Swatches */}
-            <div style={{ display: 'flex', gap: '15px', marginTop: 'auto', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', gap: '15px', marginTop: '15px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px', pageBreakInside: 'avoid' }}>
               <div style={{ fontWeight: 'bold', fontSize: '12px', display: 'flex', alignItems: 'center', marginRight: '10px', color: '#555' }}>テーマカラー<br/>(イメージ):</div>
               {accents.map((color, idx) => (
                 <div key={idx} style={{ width: '45px', height: '45px', backgroundColor: color, borderRadius: '50%', border: '1px solid #ccc', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}></div>
@@ -108,7 +118,7 @@ const ProposalModal = ({ rooms, theme, watermark, onClose }) => {
           </div>
 
           {/* Right: Table */}
-          <div style={{ flex: '1.2' }}>
+          <div style={{ float: 'left', width: '50%' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr>
@@ -153,12 +163,13 @@ const ProposalModal = ({ rooms, theme, watermark, onClose }) => {
               </tbody>
             </table>
             
-            <div style={{ marginTop: '30px', padding: '15px', fontSize: '11px', color: '#555', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#fafafa' }}>
+            <div style={{ marginTop: '30px', padding: '15px', fontSize: '11px', color: '#555', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#fafafa', pageBreakInside: 'avoid' }}>
               <strong>【ご提案事項について】</strong><br/>
               ※ 上記品番はご指定のテーマ（{theme}）に基づく推奨プランです。実際の施工にあたっては、実物の見本帳での色合わせ・確認をお願いいたします。<br/>
               ※ 壁・天井クロスはSPシリーズ（量産品）、床材はWDシリーズ（フロアタイル）またはHMシリーズ（クッションフロア）を標準仕様として想定しております。
             </div>
           </div>
+          <div style={{ clear: 'both' }}></div>
         </div>
       </div>
     </div>
