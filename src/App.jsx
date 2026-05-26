@@ -96,8 +96,20 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedRoomId, selectedFixtureId, history, historyIndex, rooms, fixtures]);
 
-  const handleRoomUpdate = (id, newX, newY) => {
-    const newRooms = rooms.map(r => r.id === id ? { ...r, x: newX, y: newY } : r);
+  const handleRoomUpdate = (id, newX, newY, newW, newH) => {
+    const newRooms = rooms.map(r => {
+      if (r.id === id) {
+        let updated = { ...r, x: newX, y: newY };
+        if (newW !== undefined && newH !== undefined) {
+          updated.w = newW;
+          updated.h = newH;
+          const sqm = (newW / 1000) * (newH / 1000);
+          updated.area = r.area.includes('帖') ? (sqm / 1.62).toFixed(1) + '帖' : sqm.toFixed(2) + '㎡';
+        }
+        return updated;
+      }
+      return r;
+    });
     setRooms(newRooms);
     saveHistory(newRooms, fixtures);
   };
@@ -322,7 +334,55 @@ function App() {
               onBlur={() => saveHistory(rooms, fixtures)}
               style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
             />
-            <label style={{ fontSize: '0.9rem', fontWeight: 'bold', marginTop: '0.5rem' }}>面積表示:</label>
+            
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>幅(W) mm:</label>
+                <input 
+                  type="number"
+                  value={rooms.find(r => r.id === selectedRoomId)?.w || 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    const newRooms = rooms.map(r => {
+                      if (r.id === selectedRoomId) {
+                        const sqm = (val / 1000) * (r.h / 1000);
+                        const isJo = r.area.includes('帖');
+                        const newArea = isJo ? (sqm / 1.62).toFixed(1) + '帖' : sqm.toFixed(2) + '㎡';
+                        return { ...r, w: val, area: newArea };
+                      }
+                      return r;
+                    });
+                    setRooms(newRooms);
+                  }}
+                  onBlur={() => saveHistory(rooms, fixtures)}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>奥行(H) mm:</label>
+                <input 
+                  type="number"
+                  value={rooms.find(r => r.id === selectedRoomId)?.h || 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    const newRooms = rooms.map(r => {
+                      if (r.id === selectedRoomId) {
+                        const sqm = (r.w / 1000) * (val / 1000);
+                        const isJo = r.area.includes('帖');
+                        const newArea = isJo ? (sqm / 1.62).toFixed(1) + '帖' : sqm.toFixed(2) + '㎡';
+                        return { ...r, h: val, area: newArea };
+                      }
+                      return r;
+                    });
+                    setRooms(newRooms);
+                  }}
+                  onBlur={() => saveHistory(rooms, fixtures)}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            <label style={{ fontSize: '0.9rem', fontWeight: 'bold', marginTop: '0.25rem' }}>面積表示:</label>
             <input 
               type="text" 
               value={rooms.find(r => r.id === selectedRoomId)?.area || ''}
@@ -338,14 +398,47 @@ function App() {
         
         {selectedFixtureId && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>建具が選択されています</p>
+            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 'bold' }}>建具・家具の設定</p>
+            
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>幅(W) mm:</label>
+                <input 
+                  type="number"
+                  value={fixtures.find(f => f.id === selectedFixtureId)?.w || 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    const newFixtures = fixtures.map(f => f.id === selectedFixtureId ? { ...f, w: val } : f);
+                    setFixtures(newFixtures);
+                  }}
+                  onBlur={() => saveHistory(rooms, fixtures)}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>奥行(H) mm:</label>
+                <input 
+                  type="number"
+                  value={fixtures.find(f => f.id === selectedFixtureId)?.h || 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    const newFixtures = fixtures.map(f => f.id === selectedFixtureId ? { ...f, h: val } : f);
+                    setFixtures(newFixtures);
+                  }}
+                  onBlur={() => saveHistory(rooms, fixtures)}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+                  disabled={fixtures.find(f => f.id === selectedFixtureId)?.type === 'door_single' || fixtures.find(f => f.id === selectedFixtureId)?.type === 'window'}
+                />
+              </div>
+            </div>
+
             <button 
               onClick={() => {
                 const newFixtures = fixtures.map(f => f.id === selectedFixtureId ? { ...f, rotation: (f.rotation + 90) % 360 } : f);
                 setFixtures(newFixtures);
                 saveHistory(rooms, newFixtures);
               }}
-              style={{ padding: '0.75rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{ padding: '0.75rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc', marginTop: '0.5rem' }}
             >
               🔄 90度回転
             </button>

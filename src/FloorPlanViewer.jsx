@@ -18,6 +18,10 @@ const FloorPlanViewer = ({
   const [dragType, setDragType] = useState(null); // 'room' or 'fixture'
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [previewPos, setPreviewPos] = useState(null); 
+  
+  // Resizing state
+  const [resizingId, setResizingId] = useState(null);
+  const [resizePreview, setResizePreview] = useState(null);
 
   const gridSize = 500;
 
@@ -54,21 +58,40 @@ const FloorPlanViewer = ({
     if (onSelectFixture) onSelectFixture(null);
   };
 
+  const handleResizePointerDown = (evt, room) => {
+    evt.preventDefault();
+    evt.stopPropagation();
+    if (onSelectRoom) onSelectRoom(room.id);
+    const pos = getMousePosition(evt);
+    setResizingId(room.id);
+    setDragOffset({
+      x: pos.x - (room.x + room.w),
+      y: pos.y - (room.y + room.h)
+    });
+    setResizePreview({ w: room.w, h: room.h, x: room.x, y: room.y });
+  };
+
   const handlePointerMove = (evt) => {
-    if (!draggingId) return;
+    if (!draggingId && !resizingId) return;
     evt.preventDefault();
     const pos = getMousePosition(evt);
     
-    const newX = pos.x - dragOffset.x;
-    const newY = pos.y - dragOffset.y;
-    setPreviewPos({ x: newX, y: newY });
+    if (draggingId) {
+      const newX = pos.x - dragOffset.x;
+      const newY = pos.y - dragOffset.y;
+      setPreviewPos({ x: newX, y: newY });
+    } else if (resizingId && resizePreview) {
+      const newW = Math.max(500, pos.x - resizePreview.x - dragOffset.x);
+      const newH = Math.max(500, pos.y - resizePreview.y - dragOffset.y);
+      setResizePreview({ ...resizePreview, w: newW, h: newH });
+    }
   };
 
   const handlePointerUp = (evt) => {
-    if (!draggingId) return;
+    if (!draggingId && !resizingId) return;
     evt.preventDefault();
     
-    if (previewPos) {
+    if (draggingId && previewPos) {
       const snapSize = dragType === 'fixture' ? 100 : gridSize;
       const snappedX = Math.round(previewPos.x / snapSize) * snapSize;
       const snappedY = Math.round(previewPos.y / snapSize) * snapSize;
@@ -78,11 +101,20 @@ const FloorPlanViewer = ({
       } else if (dragType === 'fixture' && onFixtureUpdate) {
         onFixtureUpdate(draggingId, snappedX, snappedY);
       }
+    } else if (resizingId && resizePreview) {
+      const snapSize = 100;
+      const snappedW = Math.round(resizePreview.w / snapSize) * snapSize;
+      const snappedH = Math.round(resizePreview.h / snapSize) * snapSize;
+      if (onRoomUpdate) {
+        onRoomUpdate(resizingId, resizePreview.x, resizePreview.y, snappedW, snappedH);
+      }
     }
     
     setDraggingId(null);
     setDragType(null);
     setPreviewPos(null);
+    setResizingId(null);
+    setResizePreview(null);
   };
 
   const currentRooms = useMemo(() => {
@@ -90,9 +122,12 @@ const FloorPlanViewer = ({
       if (room.id === draggingId && dragType === 'room' && previewPos) {
         return { ...room, x: previewPos.x, y: previewPos.y };
       }
+      if (room.id === resizingId && resizePreview) {
+        return { ...room, w: resizePreview.w, h: resizePreview.h };
+      }
       return room;
     });
-  }, [rooms, draggingId, dragType, previewPos]);
+  }, [rooms, draggingId, dragType, previewPos, resizingId, resizePreview]);
 
   const currentFixtures = useMemo(() => {
     return fixtures.map(f => {
@@ -260,6 +295,19 @@ const FloorPlanViewer = ({
                   <line x1={room.x + 250} y1={room.y + 150} x2={room.x + 250} y2={room.y + room.h - 150} stroke="#ff4c4c" strokeWidth="15" markerEnd="url(#arrow)" markerStart="url(#arrow)" />
                   <text x={room.x + 180} y={room.y + room.h / 2} fill="#ff4c4c" fontSize="150" fontWeight="bold" textAnchor="middle" transform={`rotate(-90 ${room.x + 180} ${room.y + room.h / 2})`}>{Math.round(room.h).toLocaleString()}</text>
                 </g>
+              )}
+              {selectedRoomId === room.id && (
+                <circle 
+                  cx={room.x + room.w} 
+                  cy={room.y + room.h} 
+                  r="100" 
+                  fill="white" 
+                  stroke="#007bff" 
+                  strokeWidth="20"
+                  style={{ cursor: 'nwse-resize', pointerEvents: 'all' }}
+                  onMouseDown={(e) => handleResizePointerDown(e, room)}
+                  onTouchStart={(e) => handleResizePointerDown(e, room)}
+                />
               )}
             </g>
           ))}
