@@ -17,12 +17,13 @@ export const materialCatalog = {
 };
 
 export const getRecommendedMaterials = (roomName, theme) => {
-  const isWaterRoom = /トイレ|風呂|UB|洗面|脱衣|キッチン/.test(roomName);
+  const safeName = roomName || '';
+  const isWaterRoom = /トイレ|風呂|UB|洗面|脱衣|キッチン/.test(safeName);
   const type = isWaterRoom ? 'water' : 'general';
   const mats = materialCatalog[theme]?.[type] || materialCatalog['natural'][type];
   
   // 玄関の場合は土間（フロアタイル等）を割り当てる等の特例
-  if (roomName.includes('玄関')) {
+  if (safeName.includes('玄関')) {
     return { ...mats, floor: 'HM12003 (石目調)' };
   }
   return mats;

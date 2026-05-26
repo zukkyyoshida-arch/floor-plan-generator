@@ -129,14 +129,16 @@ const ProposalModal = ({ rooms, theme, watermark, onClose }) => {
                 </tr>
               </thead>
               <tbody>
-                {rooms.map((room, idx) => {
-                  const mats = getRecommendedMaterials(room.name, theme);
+                {(rooms || []).map((room, idx) => {
+                  if (!room) return null;
+                  const roomName = room.name || '不明';
+                  const mats = getRecommendedMaterials(roomName, theme);
                   return (
                     <React.Fragment key={idx}>
                       <tr>
                         <td rowSpan={4} style={{ borderBottom: '2px solid #aaa', padding: '12px 8px', fontWeight: 'bold', verticalAlign: 'top', fontSize: '14px' }}>
-                          {room.name}<br/>
-                          <span style={{ fontSize: '11px', color: '#666', fontWeight: 'normal' }}>{room.area}</span>
+                          {roomName}<br/>
+                          <span style={{ fontSize: '11px', color: '#666', fontWeight: 'normal' }}>{room.area || ''}</span>
                         </td>
                         <td style={{ padding: '8px 8px 4px', color: '#555' }}>壁</td>
                         <td style={{ padding: '8px 8px 4px', color: '#555' }}>サンゲツ</td>
