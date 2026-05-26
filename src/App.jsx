@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import FloorPlanViewer from './FloorPlanViewer';
 import { sampleFloorPlan } from './data';
 import ProposalModal from './ProposalModal';
