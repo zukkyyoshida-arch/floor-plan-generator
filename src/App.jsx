@@ -11,6 +11,7 @@ function App() {
   
   const [theme, setTheme] = useState('pop'); // pop, mono, natural
   const [watermark, setWatermark] = useState('〇〇内装株式会社');
+  const [isSnapEnabled, setIsSnapEnabled] = useState(true);
   
   // 簡易Undo用ヒストリー
   const [history, setHistory] = useState([{ rooms: sampleFloorPlan.rooms, fixtures: [] }]);
@@ -342,6 +343,17 @@ function App() {
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>透かし文字（ロゴ）</label>
           <input type="text" value={watermark} onChange={e => setWatermark(e.target.value)} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc', marginTop: '0.25rem' }} />
         </div>
+        <div style={{ marginTop: '0.25rem' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input 
+              type="checkbox" 
+              checked={isSnapEnabled} 
+              onChange={e => setIsSnapEnabled(e.target.checked)} 
+              style={{ cursor: 'pointer' }}
+            />
+            スナップ（吸着・自動配置）を有効にする
+          </label>
+        </div>
       </div>
       
       {/* Palette Area */}
@@ -656,6 +668,7 @@ function App() {
             onSelectRoom={(id) => { setSelectedRoomId(id); setSelectedFixtureId(null); }}
             selectedFixtureId={selectedFixtureId}
             onSelectFixture={(id) => { setSelectedFixtureId(id); setSelectedRoomId(null); }}
+            isSnapEnabled={isSnapEnabled}
           />
         </main>
       </div>

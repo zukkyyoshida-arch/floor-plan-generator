@@ -8,7 +8,8 @@ const FloorPlanViewer = ({
   selectedRoomId, 
   onSelectRoom,
   selectedFixtureId,
-  onSelectFixture
+  onSelectFixture,
+  isSnapEnabled = true
 }) => {
   const { rooms, fixtures } = data;
   const svgRef = useRef(null);
@@ -92,7 +93,7 @@ const FloorPlanViewer = ({
     evt.preventDefault();
     
     if (draggingId && previewPos) {
-      const snapSize = 250;
+      const snapSize = isSnapEnabled ? 250 : 1;
       let snappedX = Math.round(previewPos.x / snapSize) * snapSize;
       let snappedY = Math.round(previewPos.y / snapSize) * snapSize;
       
@@ -100,7 +101,7 @@ const FloorPlanViewer = ({
         ? rooms.find(r => r.id === draggingId) 
         : fixtures.find(f => f.id === draggingId);
 
-      if (draggedItem) {
+      if (draggedItem && isSnapEnabled) {
         const MAGNET_DIST = 150; // 15cm以内に近づいたら吸着
         let bestX = snappedX;
         let bestY = snappedY;
@@ -141,7 +142,7 @@ const FloorPlanViewer = ({
         onFixtureUpdate(draggingId, snappedX, snappedY);
       }
     } else if (resizingId && resizePreview) {
-      const snapSize = 250;
+      const snapSize = isSnapEnabled ? 250 : 1;
       let snappedW = Math.round(resizePreview.w / snapSize) * snapSize;
       let snappedH = Math.round(resizePreview.h / snapSize) * snapSize;
 
@@ -152,7 +153,7 @@ const FloorPlanViewer = ({
       let minDh = MAGNET_DIST;
 
       const draggedRoom = rooms.find(r => r.id === resizingId);
-      if (draggedRoom) {
+      if (draggedRoom && isSnapEnabled) {
         rooms.forEach(r => {
           if (r.id === resizingId) return;
           const currentRightX = resizePreview.x + snappedW;
