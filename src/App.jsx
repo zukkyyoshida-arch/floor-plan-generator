@@ -3,6 +3,7 @@ import FloorPlanViewer from './FloorPlanViewer';
 import { sampleFloorPlan } from './data';
 import ProposalModal from './ProposalModal';
 import EstimateModal from './EstimateModal';
+import SalesTipsModal from './SalesTipsModal';
 import { generateEstimateItems } from './estimateLogic';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
   const [isEstimateVisible, setIsEstimateVisible] = useState(false);
   const [isProposalOpen, setIsProposalOpen] = useState(false);
   const [isEstimateModalOpen, setIsEstimateModalOpen] = useState(false);
+  const [isSalesTipsModalOpen, setIsSalesTipsModalOpen] = useState(false);
   
   // 簡易Undo用ヒストリー
   const [history, setHistory] = useState([{ rooms: sampleFloorPlan.rooms, fixtures: [] }]);
@@ -682,6 +684,12 @@ function App() {
           {!isMobile && (
             <>
               <button 
+                onClick={() => setIsSalesTipsModalOpen(true)}
+                style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', backgroundColor: '#FF9800', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
+              >
+                💡 提案のコツ
+              </button>
+              <button 
                 onClick={() => setIsEstimateModalOpen(true)}
                 style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
               >
@@ -793,6 +801,15 @@ function App() {
           unitPrices={unitPrices}
           watermark={watermark}
           onClose={() => setIsEstimateModalOpen(false)}
+        />
+      )}
+
+      {isSalesTipsModalOpen && (
+        <SalesTipsModal
+          theme={theme}
+          rooms={rooms}
+          fixtures={fixtures}
+          onClose={() => setIsSalesTipsModalOpen(false)}
         />
       )}
     </div>
