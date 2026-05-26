@@ -92,7 +92,7 @@ const FloorPlanViewer = ({
     evt.preventDefault();
     
     if (draggingId && previewPos) {
-      const snapSize = dragType === 'fixture' ? 100 : gridSize;
+      const snapSize = 100;
       const snappedX = Math.round(previewPos.x / snapSize) * snapSize;
       const snappedY = Math.round(previewPos.y / snapSize) * snapSize;
       
@@ -289,11 +289,13 @@ const FloorPlanViewer = ({
 
               {selectedRoomId === room.id && (
                 <g style={{ pointerEvents: 'none' }}>
-                  <line x1={room.x + 150} y1={room.y + 250} x2={room.x + room.w - 150} y2={room.y + 250} stroke="#ff4c4c" strokeWidth="15" markerEnd="url(#arrow)" markerStart="url(#arrow)" />
-                  <text x={room.x + room.w / 2} y={room.y + 200} fill="#ff4c4c" fontSize="150" fontWeight="bold" textAnchor="middle">{Math.round(room.w).toLocaleString()}</text>
+                  {/* 横幅の寸法線（部屋の上部に配置） */}
+                  <line x1={room.x + 50} y1={room.y + 100} x2={room.x + room.w - 50} y2={room.y + 100} stroke="#ff4c4c" strokeWidth="15" markerEnd="url(#arrow)" markerStart="url(#arrow)" />
+                  <text x={room.x + room.w / 2} y={room.y + 80} fill="#ff4c4c" fontSize="120" fontWeight="bold" textAnchor="middle">{Math.round(room.w).toLocaleString()}</text>
 
-                  <line x1={room.x + 250} y1={room.y + 150} x2={room.x + 250} y2={room.y + room.h - 150} stroke="#ff4c4c" strokeWidth="15" markerEnd="url(#arrow)" markerStart="url(#arrow)" />
-                  <text x={room.x + 180} y={room.y + room.h / 2} fill="#ff4c4c" fontSize="150" fontWeight="bold" textAnchor="middle" transform={`rotate(-90 ${room.x + 180} ${room.y + room.h / 2})`}>{Math.round(room.h).toLocaleString()}</text>
+                  {/* 縦幅の寸法線（部屋の左部に配置） */}
+                  <line x1={room.x + 100} y1={room.y + 50} x2={room.x + 100} y2={room.y + room.h - 50} stroke="#ff4c4c" strokeWidth="15" markerEnd="url(#arrow)" markerStart="url(#arrow)" />
+                  <text x={room.x + 80} y={room.y + room.h / 2} fill="#ff4c4c" fontSize="120" fontWeight="bold" textAnchor="middle" transform={`rotate(-90 ${room.x + 80} ${room.y + room.h / 2})`}>{Math.round(room.h).toLocaleString()}</text>
                 </g>
               )}
               {selectedRoomId === room.id && (
