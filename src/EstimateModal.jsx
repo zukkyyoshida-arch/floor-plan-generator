@@ -74,8 +74,7 @@ const EstimateModal = ({ rooms, fixtures, unitPrices, watermark, onClose }) => {
         padding: '20mm', 
         boxSizing: 'border-box',
         boxShadow: '0 0 20px rgba(0,0,0,0.5)',
-        display: 'flex',
-        flexDirection: 'column',
+        display: 'block',
         fontFamily: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '30px', position: 'relative' }}>
@@ -124,7 +123,7 @@ const EstimateModal = ({ rooms, fixtures, unitPrices, watermark, onClose }) => {
           </tbody>
         </table>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', fontSize: '13px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', fontSize: '13px', pageBreakInside: 'avoid' }}>
           <div style={{ width: '250px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderBottom: '1px dotted #999' }}>
               <span>【 合 計 】</span>
