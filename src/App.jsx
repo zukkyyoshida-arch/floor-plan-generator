@@ -318,7 +318,9 @@ function App() {
         if (data.fixtures) setFixtures(data.fixtures);
         if (data.theme) setTheme(data.theme);
         if (data.watermark !== undefined) setWatermark(data.watermark);
-        if (data.unitPrices) setUnitPrices(data.unitPrices);
+        if (data.unitPrices) {
+          setUnitPrices(prev => ({ ...prev, ...data.unitPrices }));
+        }
         if (data.isEstimateVisible !== undefined) setIsEstimateVisible(data.isEstimateVisible);
         saveHistory(data.rooms || [], data.fixtures || []);
       } catch (err) {

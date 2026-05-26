@@ -1,6 +1,10 @@
 export const generateEstimateItems = (rooms = [], fixtures = [], unitPrices = {}) => {
   const items = [];
   
+  if ((!rooms || rooms.length === 0) && (!fixtures || fixtures.length === 0)) {
+    return items;
+  }
+  
   // 1. 仮設・解体・大工工事
   items.push({ name: '各種養生費', qty: 1, unit: '式', price: 30000 });
   items.push({ name: '各種搬出・搬入・運搬費資材運搬費等', qty: 1, unit: '式', price: 32000 });
