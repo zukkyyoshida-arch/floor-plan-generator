@@ -296,6 +296,40 @@ function App() {
     }, 50);
   };
 
+  const handleExportPNG = () => {
+    const svgElement = document.querySelector('svg');
+    if (!svgElement) return;
+
+    const prevSelectedRoom = selectedRoomId;
+    const prevSelectedFixture = selectedFixtureId;
+    setSelectedRoomId(null);
+    setSelectedFixtureId(null);
+
+    setTimeout(() => {
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgElement);
+      const canvas = document.createElement("canvas");
+      const svgSize = svgElement.getBoundingClientRect();
+      canvas.width = svgSize.width * 2;
+      canvas.height = svgSize.height * 2;
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.onload = function() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const pngFile = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = `floorplan.png`;
+        link.href = pngFile;
+        link.click();
+        setSelectedRoomId(prevSelectedRoom);
+        setSelectedFixtureId(prevSelectedFixture);
+      };
+      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgString)));
+    }, 50);
+  };
+
   const handleSaveJson = () => {
     const data = { rooms, fixtures, theme, watermark, unitPrices, isEstimateVisible };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -358,76 +392,76 @@ function App() {
   const SidebarContent = () => (
     <>
       {/* Settings Area */}
-      <div style={{ padding: '1rem', borderBottom: '1px solid #ddd', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ padding: '1.2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
         <div>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>テーマカラー</label>
-          <select value={theme} onChange={e => setTheme(e.target.value)} style={{ width: '100%', padding: '0.4rem', marginTop: '0.25rem', borderRadius: '4px', border: '1px solid #ccc' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#aaa' }}>テーマカラー</label>
+          <select value={theme} onChange={e => setTheme(e.target.value)} style={{ width: '100%', padding: '0.6rem', marginTop: '0.4rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(0,0,0,0.3)', color: '#fff', outline: 'none' }}>
             <option value="pop">ポップ（カラー）</option>
             <option value="mono">白黒（青焼き・CAD風）</option>
             <option value="natural">ナチュラル（木目・アース調）</option>
           </select>
         </div>
         <div>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>面積の一括再計算</label>
-          <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
-            <button onClick={() => handleRecalculateArea('sqm')} style={{ flex: 1, padding: '0.4rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}>㎡</button>
-            <button onClick={() => handleRecalculateArea('jo')} style={{ flex: 1, padding: '0.4rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}>帖</button>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#aaa' }}>面積の一括再計算</label>
+          <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem' }}>
+            <button onClick={() => handleRecalculateArea('sqm')} className="glass-btn">㎡で計算</button>
+            <button onClick={() => handleRecalculateArea('jo')} className="glass-btn">帖で計算</button>
           </div>
         </div>
         <div>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>透かし文字（ロゴ）</label>
-          <input type="text" value={watermark} onChange={e => setWatermark(e.target.value)} style={{ width: '100%', padding: '0.4rem', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc', marginTop: '0.25rem' }} />
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#aaa' }}>透かし文字（ロゴ）</label>
+          <input type="text" value={watermark} onChange={e => setWatermark(e.target.value)} style={{ width: '100%', padding: '0.6rem', boxSizing: 'border-box', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(0,0,0,0.3)', color: '#fff', marginTop: '0.4rem', outline: 'none' }} />
         </div>
-        <div style={{ marginTop: '0.25rem' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+        <div style={{ marginTop: '0.4rem' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#aaa' }}>
             <input 
               type="checkbox" 
               checked={isSnapEnabled} 
               onChange={e => setIsSnapEnabled(e.target.checked)} 
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: 'pointer', width: '16px', height: '16px' }}
             />
-            スナップ（吸着・自動配置）を有効にする
+            スナップ（自動吸着）を有効にする
           </label>
         </div>
-        <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>概算見積・明細単価設定</label>
+        <div style={{ marginTop: '0.5rem', padding: '0.8rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#aaa' }}>概算見積・明細単価設定</label>
           
-          <details style={{ marginTop: '0.25rem', fontSize: '0.75rem' }}>
-            <summary style={{ cursor: 'pointer', fontWeight: 'bold', padding: '0.2rem' }}>内装単価を展開</summary>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem 0' }}>
+          <details style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#ccc' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 'bold', padding: '0.3rem', borderRadius: '4px', outline: 'none' }}>内装単価を展開</summary>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem 0' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1 }}>クロス (円/m):</span>
-                <input type="number" value={unitPrices.cross} onChange={e => setUnitPrices({...unitPrices, cross: parseInt(e.target.value) || 0, wall: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+                <input type="number" value={unitPrices.cross} onChange={e => setUnitPrices({...unitPrices, cross: parseInt(e.target.value) || 0, wall: parseInt(e.target.value) || 0})} className="glass-input" />
               </div>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1 }}>フロアタイル (円/㎡):</span>
-                <input type="number" value={unitPrices.floorTile} onChange={e => setUnitPrices({...unitPrices, floorTile: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+                <input type="number" value={unitPrices.floorTile} onChange={e => setUnitPrices({...unitPrices, floorTile: parseInt(e.target.value) || 0})} className="glass-input" />
               </div>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1 }}>クッションフロア (円/㎡):</span>
-                <input type="number" value={unitPrices.cf} onChange={e => setUnitPrices({...unitPrices, cf: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+                <input type="number" value={unitPrices.cf} onChange={e => setUnitPrices({...unitPrices, cf: parseInt(e.target.value) || 0})} className="glass-input" />
               </div>
             </div>
           </details>
 
-          <details style={{ marginTop: '0.25rem', fontSize: '0.75rem' }}>
-            <summary style={{ cursor: 'pointer', fontWeight: 'bold', padding: '0.2rem' }}>設備単価を展開</summary>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: '0.5rem 0' }}>
+          <details style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#ccc' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 'bold', padding: '0.3rem', borderRadius: '4px', outline: 'none' }}>設備単価を展開</summary>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem 0' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1 }}>キッチン (円/式):</span>
-                <input type="number" value={unitPrices.kitchen} onChange={e => setUnitPrices({...unitPrices, kitchen: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+                <input type="number" value={unitPrices.kitchen} onChange={e => setUnitPrices({...unitPrices, kitchen: parseInt(e.target.value) || 0})} className="glass-input" />
               </div>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1 }}>ユニットバス (円/式):</span>
-                <input type="number" value={unitPrices.ub} onChange={e => setUnitPrices({...unitPrices, ub: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+                <input type="number" value={unitPrices.ub} onChange={e => setUnitPrices({...unitPrices, ub: parseInt(e.target.value) || 0})} className="glass-input" />
               </div>
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1 }}>トイレ・便座 (円/式):</span>
-                <input type="number" value={unitPrices.toilet} onChange={e => setUnitPrices({...unitPrices, toilet: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+                <input type="number" value={unitPrices.toilet} onChange={e => setUnitPrices({...unitPrices, toilet: parseInt(e.target.value) || 0})} className="glass-input" />
               </div>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ flex: 1 }}>洗面化粧台 (円/式):</span>
-                <input type="number" value={unitPrices.washstand} onChange={e => setUnitPrices({...unitPrices, washstand: parseInt(e.target.value) || 0})} style={{ width: '70px', padding: '0.2rem' }} />
+                <span style={{ flex: 1 }}>洗面台 (円/式):</span>
+                <input type="number" value={unitPrices.washstand} onChange={e => setUnitPrices({...unitPrices, washstand: parseInt(e.target.value) || 0})} className="glass-input" />
               </div>
             </div>
           </details>
@@ -435,41 +469,46 @@ function App() {
       </div>
       
       {/* Palette Area */}
-      <div style={{ padding: '1rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>部屋を追加</h3>
-        <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? '1fr 1fr' : 'none', flexDirection: isMobile ? 'row' : 'column', gap: '0.5rem' }}>
+      <div style={{ padding: '1.2rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#fff' }}>部屋を追加</h3>
+        <div style={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: isMobile ? '1fr 1fr' : 'none', flexDirection: isMobile ? 'row' : 'column', gap: '0.6rem' }}>
           {paletteItems.map((item, idx) => (
             <button
               key={idx}
               onClick={() => handleAddRoom(item.name, item.w, item.h)}
+              className="room-btn"
               style={{
-                padding: '0.75rem', backgroundColor: 'white', border: '1px solid #ccc', borderRadius: '6px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                padding: '0.75rem', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.8rem', color: '#fff',
+                transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
               }}
             >
-              <div style={{ width: '20px', height: '20px', backgroundColor: item.color, border: '1px solid black', flexShrink: 0 }}></div>
+              <div style={{ width: '24px', height: '24px', backgroundColor: item.color, border: '2px solid rgba(255,255,255,0.5)', borderRadius: '4px', flexShrink: 0 }}></div>
               <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{item.name}</span>
+                <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{item.name}</span>
               </div>
             </button>
           ))}
         </div>
-        <div style={{ marginTop: '1rem', borderTop: '1px solid #ccc', paddingTop: '1rem' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>建具・家具スタンプ</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-            <button onClick={() => handleAddFixture('door_single', 900)} style={{ padding: '0.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>🚪 ドア</button>
-            <button onClick={() => handleAddFixture('window', 1800)} style={{ padding: '0.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>🪟 窓</button>
-            <button onClick={() => handleAddFixture('kitchen', 2500)} style={{ padding: '0.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>🍳 キッチン</button>
-            <button onClick={() => handleAddFixture('toilet', 800)} style={{ padding: '0.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>🚽 トイレ</button>
-            <button onClick={() => handleAddFixture('bed', 1200)} style={{ padding: '0.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>🛏️ ベッド</button>
-            <button onClick={() => handleAddFixture('sofa', 1800)} style={{ padding: '0.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px' }}>🛋️ ソファ</button>
+        <div style={{ marginTop: '1.2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.2rem' }}>
+          <h3 style={{ margin: '0 0 0.8rem 0', fontSize: '1rem', color: '#fff' }}>家具・建具スタンプ</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+            <button onClick={() => handleAddFixture('door_single', 900)} className="fixture-btn">🚪 ドア</button>
+            <button onClick={() => handleAddFixture('window', 1800)} className="fixture-btn">🪟 窓</button>
+            <button onClick={() => handleAddFixture('kitchen', 2500)} className="fixture-btn">🍳 キッチン</button>
+            <button onClick={() => handleAddFixture('toilet', 800)} className="fixture-btn">🚽 トイレ</button>
+            <button onClick={() => handleAddFixture('bed', 1200)} className="fixture-btn">🛏️ ベッド</button>
+            <button onClick={() => handleAddFixture('sofa', 1800)} className="fixture-btn">🛋️ ソファ</button>
+            <button onClick={() => handleAddFixture('tv', 1500)} className="fixture-btn">📺 テレビ</button>
+            <button onClick={() => handleAddFixture('dining', 1600)} className="fixture-btn">🍽️ ダイニング</button>
+            <button onClick={() => handleAddFixture('washing_machine', 700)} className="fixture-btn">🧺 洗濯機</button>
+            <button onClick={() => handleAddFixture('plant', 600)} className="fixture-btn">🪴 観葉植物</button>
           </div>
         </div>
       </div>
 
       {/* Delete & Edit Area */}
-      <div style={{ padding: '1rem', borderTop: '1px solid #ddd', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 20px)' : '1rem' }}>
+      <div style={{ padding: '1.2rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 20px)' : '1.2rem' }}>
         {selectedRoomId && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>部屋名:</label>
@@ -637,9 +676,9 @@ function App() {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
-      <header style={{ padding: '0.75rem 1rem', backgroundColor: '#333', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', zIndex: 110 }}>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', backgroundColor: '#111315', color: '#e0e0e0' }}>
+      <header className="glass-header" style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', zIndex: 110, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {isMobile && (
             <button 
               onClick={() => setIsTrayOpen(!isTrayOpen)}
@@ -717,20 +756,24 @@ function App() {
           )}
           <button 
             onClick={handleExport}
-            style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', marginLeft: '0.5rem', fontWeight: 'bold' }}
+            style={{ padding: '0.5rem 0.8rem', cursor: 'pointer', backgroundColor: 'rgba(76, 175, 80, 0.2)', color: '#4CAF50', border: '1px solid #4CAF50', borderRadius: '8px', marginLeft: '0.5rem', fontWeight: 'bold', transition: 'all 0.2s' }}
           >
             SVG出力
+          </button>
+          <button 
+            onClick={handleExportPNG}
+            style={{ padding: '0.5rem 0.8rem', cursor: 'pointer', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '8px', marginLeft: '0.5rem', fontWeight: 'bold', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(76, 175, 80, 0.3)' }}
+          >
+            📸 画像保存
           </button>
         </div>
       </header>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         {/* Desktop Sidebar OR Mobile Slide-in Menu */}
-        <aside style={{ 
-          width: isMobile ? '80%' : '320px', 
-          maxWidth: '320px',
-          backgroundColor: '#f8f9fa', 
-          borderRight: '1px solid #ddd', 
+        <aside className="glass-sidebar" style={{ 
+          width: isMobile ? '80%' : '340px', 
+          maxWidth: '340px',
           display: 'flex', 
           flexDirection: 'column', 
           zIndex: 100,
@@ -739,8 +782,8 @@ function App() {
           bottom: 0,
           left: 0,
           transform: isMobile ? (isTrayOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
-          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isMobile && isTrayOpen ? '4px 0 10px rgba(0,0,0,0.1)' : 'none'
+          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          boxShadow: isMobile && isTrayOpen ? '10px 0 30px rgba(0,0,0,0.5)' : '1px 0 0 rgba(255,255,255,0.05)'
         }}>
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
             <SidebarContent />
@@ -767,11 +810,11 @@ function App() {
         {isMobile && isTrayOpen && (
           <div 
             onClick={() => setIsTrayOpen(false)}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)', zIndex: 90 }}
           />
         )}
 
-        <main style={{ flex: 1, backgroundColor: '#e0e0e0', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', touchAction: 'none' }}>
+        <main style={{ flex: 1, backgroundColor: '#090a0c', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', touchAction: 'none' }}>
           <FloorPlanViewer 
             data={currentData} 
             onRoomUpdate={handleRoomUpdate} 

@@ -409,9 +409,9 @@ const FloorPlanViewer = ({
               {selectedFixtureId === f.id && (
                 <rect 
                   x="-50" 
-                  y={f.type === 'door_single' ? -50 : (f.type === 'kitchen' ? -375 : (f.type === 'toilet' ? -450 : (f.type === 'bed' || f.type === 'sofa' ? -f.w/2 - 50 : -80)))} 
-                  width={f.type === 'toilet' ? 900 : (f.type === 'bed' ? 2100 : (f.type === 'sofa' ? 900 : f.w + 100))} 
-                  height={f.type === 'door_single' ? f.w + 100 : (f.type === 'kitchen' ? 750 : (f.type === 'toilet' ? 900 : (f.type === 'bed' || f.type === 'sofa' ? f.w + 100 : 160)))} 
+                  y={f.type === 'door_single' ? -50 : f.type === 'kitchen' ? -375 : f.type === 'toilet' ? -450 : f.type === 'bed' || f.type === 'sofa' ? -f.w/2 - 50 : f.type === 'dining' ? -f.h/2 - 50 : f.type === 'washing_machine' ? -f.w/2 - 50 : f.type === 'tv' ? -f.w/2 - 50 : -80} 
+                  width={f.type === 'toilet' ? 900 : f.type === 'bed' ? 2100 : f.type === 'sofa' ? 900 : f.type === 'washing_machine' ? f.w + 100 : f.w + 100} 
+                  height={f.type === 'door_single' ? f.w + 100 : f.type === 'kitchen' ? 750 : f.type === 'toilet' ? 900 : f.type === 'bed' || f.type === 'sofa' ? f.w + 100 : f.type === 'dining' ? f.h + 100 : f.type === 'washing_machine' ? f.w + 100 : f.type === 'tv' ? f.w + 100 : 160} 
                   fill="none" stroke="#ff4c4c" strokeWidth="20" strokeDasharray="40 20" 
                 />
               )}
@@ -464,6 +464,49 @@ const FloorPlanViewer = ({
                   <rect x="0" y={-f.w/2} width="200" height={f.w} fill="#e0e0e0" stroke="#888" strokeWidth="15" rx="50" />
                   <rect x="0" y={-f.w/2} width="800" height="200" fill="#e0e0e0" stroke="#888" strokeWidth="15" rx="50" />
                   <rect x="0" y={f.w/2 - 200} width="800" height="200" fill="#e0e0e0" stroke="#888" strokeWidth="15" rx="50" />
+                </g>
+              )}
+
+              {f.type === 'tv' && (
+                <g>
+                  {/* TV Board */}
+                  <rect x="0" y={-f.w/2} width="400" height={f.w} rx="20" fill="#e0d4c8" stroke="#a09080" strokeWidth="15" />
+                  {/* TV Screen */}
+                  <rect x="100" y={-f.w/2 + 100} width="100" height={f.w - 200} rx="10" fill="#333" stroke="#111" strokeWidth="15" />
+                </g>
+              )}
+
+              {f.type === 'dining' && (
+                <g>
+                  {/* Table */}
+                  <rect x="250" y={-f.h/2} width={f.w - 500} height={f.h} rx="50" fill="#e6c280" stroke="#a68240" strokeWidth="15" />
+                  {/* Chairs Left */}
+                  <circle cx="100" cy={-f.h/4} r="150" fill="#f0f0f0" stroke="#888" strokeWidth="15" />
+                  <circle cx="100" cy={f.h/4} r="150" fill="#f0f0f0" stroke="#888" strokeWidth="15" />
+                  {/* Chairs Right */}
+                  <circle cx={f.w - 100} cy={-f.h/4} r="150" fill="#f0f0f0" stroke="#888" strokeWidth="15" />
+                  <circle cx={f.w - 100} cy={f.h/4} r="150" fill="#f0f0f0" stroke="#888" strokeWidth="15" />
+                </g>
+              )}
+
+              {f.type === 'washing_machine' && (
+                <g>
+                  {/* Waterproof Pan */}
+                  <rect x="0" y={-f.w/2} width={f.w} height={f.w} fill="#f8f9fa" stroke="#ccc" strokeWidth="15" />
+                  {/* Machine */}
+                  <rect x="50" y={-f.w/2 + 50} width={f.w - 100} height={f.w - 100} rx="100" fill="white" stroke="#999" strokeWidth="15" />
+                  <circle cx={f.w/2} cy="0" r="150" fill="#e0f7fa" stroke="#00bcd4" strokeWidth="15" />
+                </g>
+              )}
+
+              {f.type === 'plant' && (
+                <g>
+                  <circle cx="300" cy="0" r="250" fill="#dcedc8" stroke="#8bc34a" strokeWidth="15" />
+                  <circle cx="300" cy="0" r="100" fill="#8d6e63" stroke="#5d4037" strokeWidth="15" />
+                  <path d="M 300 0 C 100 -200 100 200 300 0" fill="#4caf50" />
+                  <path d="M 300 0 C 500 -200 500 200 300 0" fill="#4caf50" />
+                  <path d="M 300 0 C 100 -200 500 -200 300 0" fill="#388e3c" />
+                  <path d="M 300 0 C 100 200 500 200 300 0" fill="#388e3c" />
                 </g>
               )}
             </g>
